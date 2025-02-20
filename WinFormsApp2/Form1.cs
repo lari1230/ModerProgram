@@ -15,7 +15,7 @@ namespace ModerProgram
     {
         private static string logFilePath = "activity_log.txt";
         private static HashSet<string> blockedWords = new HashSet<string> { "password", "secret" };
-        private static HashSet<string> blockedPrograms = new HashSet<string> { "notepad.exe", "calc.exe" };
+        private static HashSet<string> blockedPrograms = new HashSet<string> { "calc.exe" };
         private CancellationTokenSource cancellationTokenSource;
 
         [DllImport("user32.dll")]
@@ -55,7 +55,7 @@ namespace ModerProgram
             {
                 if (textBox1.Text.Contains("."))
                 {
-                    blockedWords.Add(textBox1.Text);
+                    blockedPrograms.Add(textBox1.Text);
                     MessageBox.Show($"Программа \"{textBox1.Text}\" добавлена \nв список запрещённых программ.", "Notification");
                     textBox1?.Clear();
                 }
