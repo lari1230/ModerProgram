@@ -8,14 +8,15 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml.Serialization;
+using System.Text.Json;
 
 namespace ModerProgram
 {
     public partial class MainForm : Form
     {
         private static string logFilePath = "activity_log.txt";
-        private static HashSet<string> blockedWords = new HashSet<string> { "password", "secret" };
-        private static HashSet<string> blockedPrograms = new HashSet<string> { "calc.exe" };
+        private static List<string> blockedWords = new List<string> { };
+        private static List<string> blockedPrograms = new List<string> { };
         private CancellationTokenSource cancellationTokenSource;
 
         [DllImport("user32.dll")]
@@ -24,26 +25,69 @@ namespace ModerProgram
         public MainForm()
         {
             InitializeComponent();
+            AppendList();
         }
 
-        private void MainForm_Load(object sender, EventArgs e)
-        {
+        private void MainForm_Load(object sender, EventArgs e) 
+        {   
             cancellationTokenSource = new CancellationTokenSource();
             Task.Run(() => TrackKeys(cancellationTokenSource.Token));
-            Task.Run(() => MonitorProcesses(cancellationTokenSource.Token));
+            Task.Run(() => MonitorProcesses(cancellationTokenSource.Token));  
+        }
+        private void AppendList()
+        {
+            string programs = File.ReadAllText(@"./fileBlockedPrograms.fb");
+            string temp = "";
+
+            if (programs != null)
+            {
+                for (int i = 0; i < programs.Count(); i++)
+                {
+                    temp += programs[i];
+                    if (programs[i] == ' ')
+                    {
+                        temp = temp.Substring(0, temp.Length - 1);
+                        blockedPrograms.Add(temp);
+                        temp = "";
+                    }
+
+                    
+                }
+                
+            }
+            string words = File.ReadAllText(@"./fileBlockedWords.fb");
+            if (words != null)
+            {
+                for (int i = 0; i < words.Count(); i++)
+                {
+                    temp += words[i];
+                    if (words[i] == ' ')
+                    {
+                        temp = temp.Substring(0, temp.Length - 1);
+                        blockedWords.Add(temp);
+                        temp = "";
+                    }
+                }
+            }
         }
         private void AddBanWord_Click(object sender, EventArgs e)
         {
-            for (int i = 0; i < textBox1.Text.Count(); i++) {
+            for (int i = 0; i < textBox1.Text.Count(); i++)
+            {
                 if (!textBox1.Text.Contains("."))
                 {
                     blockedWords.Add(textBox1.Text);
+                    File.AppendAllText(@"./fileBlockedWords.fb", $"{textBox1.Text} ");
                     MessageBox.Show($"Слово \"{textBox1.Text}\" добавлено \nв список запрещённых слов.", "Notification");
                     textBox1?.Clear();
                 }
+                else if (textBox1.Text == "[eqweqw")
+                {
+                    textBox1.Clear();
+                }
                 else
                 {
-                    MessageBox.Show("Слово не может содержать знаков препинания!","WARNING!");
+                    MessageBox.Show("Слово не может содержать знаков препинания!", "WARNING!");
                     textBox1?.Clear();
                 }
             }
@@ -56,12 +100,13 @@ namespace ModerProgram
                 if (textBox1.Text.Contains("."))
                 {
                     blockedPrograms.Add(textBox1.Text);
+                    File.AppendAllText(@"./fileBlockedPrograms.fb", $"{textBox1.Text} ");
                     MessageBox.Show($"Программа \"{textBox1.Text}\" добавлена \nв список запрещённых программ.", "Notification");
                     textBox1?.Clear();
                 }
                 else
                 {
-                    MessageBox.Show("Программа должна иметь разширение!","WARNING!");
+                    MessageBox.Show("Программа должна иметь разширение!", "WARNING!");
                     textBox1?.Clear();
                 }
             }
